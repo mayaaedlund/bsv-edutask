@@ -8,59 +8,50 @@ class DatabaseException(Exception):
     """ Custom simulated database exception """
     pass
 
-@pytest.fixture
-def valid_email():
-    """ Valid email format: <local-part>@<domain>.<host> """
-    return "test.testsson@example.com"
+# Constants
+VALID_EMAIL = "test.testsson@example.com"   # valid email format: <local-part>@<domain>.<host>
+USER1 = {"id": 1, "email": VALID_EMAIL}
+USER2 = {"id": 2, "email": VALID_EMAIL}
+ERROR_MSG = f"Error: more than one user found with mail {VALID_EMAIL}\n"
 
-@pytest.fixture
-def user1(valid_email):
-    return {"id": 1, "email": valid_email}
 
-@pytest.fixture
-def user2(valid_email):
-    return {"id": 2, "email": valid_email}
-
-@pytest.fixture
-def error_message(valid_email):
-    return f"Error: more than one user found with mail {valid_email}\n"
-
-def test_get_user_by_email_1(valid_email):
+@pytest.mark.parametrize(
+    "users, email, expected",
+    [
+        ([], VALID_EMAIL, None),        # test case 1
+        ([USER1], VALID_EMAIL, USER1),  # test case 2
+    ]
+)
+def test_get_user_by_email_1_2(users, email, expected):
     mock_DAO = MagicMock()
-    mock_DAO.find.return_value = []   # no matching user
+    mock_DAO.find.return_value = users
     sut = UserController(mock_DAO)
 
-    res = sut.get_user_by_email(valid_email)
+    res = sut.get_user_by_email(email)
 
-    assert res == None
+    assert res == expected
 
-def test_get_user_by_email_2(user1, valid_email):
+
+def test_get_user_by_email_3(capfd):
     mock_DAO = MagicMock()
-    mock_DAO.find.return_value = [user1]   # 1 matching user
+    mock_DAO.find.return_value = [USER1, USER2]
     sut = UserController(mock_DAO)
 
-    res = sut.get_user_by_email(valid_email)
-
-    assert res == user1
-
-def test_get_user_by_email_3(user1, user2, valid_email, error_message, capfd):
-    mock_DAO = MagicMock()
-    mock_DAO.find.return_value = [user1, user2]   # 2 matching users
-    sut = UserController(mock_DAO)
-
-    res = sut.get_user_by_email(valid_email)
+    res = sut.get_user_by_email(VALID_EMAIL)
     std_out, _ = capfd.readouterr()
 
-    assert res == user1
-    assert std_out == error_message
+    assert res == USER1
+    assert std_out == ERROR_MSG
 
-def test_get_user_by_email_4(valid_email):
+
+def test_get_user_by_email_4():
     mock_DAO = MagicMock()
-    mock_DAO.find.side_effect = DatabaseException("Error occured in database")  # db error
+    mock_DAO.find.side_effect = DatabaseException("Error occured in database")
     sut = UserController(mock_DAO)
 
     with pytest.raises(DatabaseException):
-        sut.get_user_by_email(valid_email)
+        sut.get_user_by_email(VALID_EMAIL)
+
 
 @pytest.mark.parametrize("invalid_email", ["@no.local-part.com", "no.at-symbol.com", "double@@symbols.com", "no@.domain", "no@host"])
 def test_get_user_by_email_5(invalid_email):
@@ -69,4 +60,4 @@ def test_get_user_by_email_5(invalid_email):
     sut = UserController(mock_DAO)
 
     with pytest.raises(ValueError):
-        sut.get_user_by_email(invalid_email)    # 5 invalid emails
+        sut.get_user_by_email(invalid_email)
