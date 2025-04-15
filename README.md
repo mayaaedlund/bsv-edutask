@@ -2,6 +2,8 @@
 
 [![GitHub](https://img.shields.io/github/license/JulianFrattini/edutask)](./LICENSE)
 
+Test
+
 This is the codebase for **edutask**, a simple web-based application where users can sign up, add YouTube videos to a watchlist, and associate these videos with todo lists in order to keep track of educational material. 
 The application consists of a database using MongoDB, a server using Flask, and a graphical user interface using React. 
 You can find more information in the [specification](./documentation/edutask-specification.pdf).
