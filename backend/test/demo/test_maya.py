@@ -44,7 +44,7 @@ def test_valid_email_no_user(controller, valid_email):
     result = user_controller.get_user_by_email(valid_email)
     assert result is None
 
-# Testcase 2: One user found
+# Testcase 2: one user found
 def test_valid_email_one_user(controller, userOne, valid_email):
     """ 
     Testcase when excactly one user is found 
