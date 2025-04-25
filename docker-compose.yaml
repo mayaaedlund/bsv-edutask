@@ -24,6 +24,8 @@ services:
       - PORT=${PORT_BACKEND}
     ports:
       - "${PORT_BACKEND}:${PORT_BACKEND}"
+    volumes:                                              # FOR TESTING
+      - ./backend/test/integration:/app/test/integration  # FOR TESTING
 
   frontend:
     build: ./frontend
