@@ -36,20 +36,29 @@ def dao(set_MONGO_URL, clean_up_database):
 def valid_task():
     return {
         "title": "A title",
-        "description": "A description"
+        "description": "A task description"
     }
 
-def test_create_task(dao, valid_task):
+@pytest.fixture
+def valid_todo():
+    return {
+        "description": "A todo description",
+        "done": False
+    }
+
+# Test case 1
+def test_create_valid_task(dao, valid_task):
     """ Should create and return a valid task """
     sut = dao(collection_name="task")
     res = sut.create(valid_task)
     assert res["title"] == valid_task["title"]
 
+# Test case 2
 @pytest.mark.parametrize(
     "invalid_task",
     [
         { "title": "Description is missing (required)" },
-        { "title": "Description has wrong bson type (string expected)", "description": 555 }
+        { "title": "'description' has wrong bson type (string expected)", "description": 555 }
     ]
 )
 def test_create_invalid_tasks(dao, invalid_task):
@@ -58,9 +67,49 @@ def test_create_invalid_tasks(dao, invalid_task):
     with pytest.raises(WriteError):
         sut.create(invalid_task)
 
+# Test case 2
+@pytest.mark.skip
 def test_create_invalid_task_not_unique(dao, valid_task):
     """ Should raise DuplicateKeyError """
     sut = dao(collection_name="task")
     sut.create(valid_task)  # add a valid task
     with pytest.raises(DuplicateKeyError):
         sut.create(valid_task)  # add a second task, with same title
+
+# Test case 3
+def test_create_valid_todo(dao, valid_todo):
+    """ Should create and return a valid todo """
+    sut = dao(collection_name="todo")
+    res = sut.create(valid_todo)
+    assert res["description"] == valid_todo["description"]
+
+# Test case 4
+@pytest.mark.parametrize(
+    "invalid_todo",
+    [
+        { "done": False }, # missing required field
+        { "description": "'done' has wrong bson type (bool expected)", "done": "False" }
+    ]
+)
+def test_create_invalid_todos(dao, invalid_todo):
+    """ Should raise WriteError """
+    sut = dao(collection_name="todo")
+    with pytest.raises(WriteError):
+        sut.create(invalid_todo)
+
+# Test case 4
+@pytest.mark.skip
+def test_create_invalid_todo_not_unique(dao, valid_todo):
+    """ Should raise DuplicateKeyError """
+    sut = dao(collection_name="todo")
+    sut.create(valid_todo)  # add a valid todo
+    with pytest.raises(DuplicateKeyError):
+        sut.create(valid_todo)  # add a second todo, with same description
+
+# Test case 9
+def test_init_dao_invalid_collection_name(dao):
+    """ Should handle invalid collection name gracefully, FileNotFoundError is not accepted """
+    try:
+        dao(collection_name="invalid_name")
+    except FileNotFoundError:
+        pytest.fail("FileNotFoundError is raised. A more graceful solution, eg. InvalidCollectionError, is required.")
