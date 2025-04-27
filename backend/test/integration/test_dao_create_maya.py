@@ -1,6 +1,6 @@
 import pytest
 from pymongo import MongoClient
-from pymongo.errors import WriteError, DuplicateKeyError
+from pymongo.errors import WriteError, DuplicateKeyError, ServerSelectionTimeoutError
 from unittest.mock import MagicMock
 from src.util.dao import DAO
 
@@ -96,3 +96,56 @@ def test_create_user_duplicate_email(dao, valid_user):
 
     with pytest.raises(DuplicateKeyError):
             sut.create(duplicate_user)
+
+#Testcase 7
+
+@pytest.fixture
+def valid_video():
+    """Fixture for a valid video object"""
+    return {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+
+def test_create_valid_video(dao, valid_video):
+    """Should create and return a valid video"""
+    sut = dao(collection_name="video")
+    res = sut.create(valid_video)
+
+    assert res["url"] == valid_video["url"]
+    assert "_id" in res
+
+
+# Testcase 8
+
+@pytest.mark.parametrize(
+    "invalid_video",
+    [
+        {},  # Missing required field
+        {"url": 12345}  # Wrong type
+    ]
+)
+def test_create_invalid_video(dao, invalid_video):
+    """Should raise WriteError when trying to create an invalid video"""
+    sut = dao(collection_name="video")
+
+    with pytest.raises(WriteError):
+        sut.create(invalid_video)
+
+
+# Testcase 10
+@pytest.fixture
+def valid_task():
+    return {
+        "title": "A title",
+        "description": "A description"
+    }
+
+def test_create_valid_task_with_unreachable_db(monkeypatch, valid_task):
+    """Should raise ServerSelectionTimeoutError when DB is unreachable"""
+
+    # Set invalid MONGO_URL
+    monkeypatch.setenv("MONGO_URL", "mongodb://invalid_host:27017")
+
+    with pytest.raises(ServerSelectionTimeoutError):
+        sut = DAO(collection_name="task")
+        sut.create(valid_task)
