@@ -3,6 +3,8 @@ from pymongo import MongoClient
 from pymongo.errors import WriteError, DuplicateKeyError
 from unittest.mock import MagicMock
 from src.util.dao import DAO
+from bson import ObjectId
+from datetime import datetime
 
 pytestmark = pytest.mark.integration
 
@@ -35,14 +37,20 @@ def dao(set_MONGO_URL, clean_up_database):
 @pytest.fixture
 def valid_task():
     return {
-        "title": "A title",
-        "description": "A task description"
+        "title": "A valid task",
+        "description": "A task description",
+        "startdate": datetime.utcnow(),
+        "duedate": datetime.utcnow(),
+        "requires": [ObjectId(), ObjectId()],
+        "categories": ["cat1", "cat2"],
+        "todos": [ObjectId(), ObjectId()],
+        "video": ObjectId()
     }
 
 @pytest.fixture
 def valid_todo():
     return {
-        "description": "A todo description",
+        "description": "A todo description of a valid todo",
         "done": False
     }
 
@@ -53,7 +61,7 @@ def test_create_valid_task(dao, valid_task):
     res = sut.create(valid_task)
     assert res["title"] == valid_task["title"]
 
-# Test case 2
+# Test case 2 (part 1-2)
 @pytest.mark.parametrize(
     "invalid_task",
     [
@@ -65,16 +73,15 @@ def test_create_invalid_tasks(dao, invalid_task):
     """ Should raise WriteError """
     sut = dao(collection_name="task")
     with pytest.raises(WriteError):
-        sut.create(invalid_task)
+        sut.create(invalid_task)    # missing required field or wrong bson type
 
-# Test case 2
-@pytest.mark.skip
+# Test case 2 (part 3)
 def test_create_invalid_task_not_unique(dao, valid_task):
     """ Should raise DuplicateKeyError """
     sut = dao(collection_name="task")
     sut.create(valid_task)  # add a valid task
     with pytest.raises(DuplicateKeyError):
-        sut.create(valid_task)  # add a second task, with same title
+        sut.create(valid_task)  # add a second task, with same title (not unique)
 
 # Test case 3
 def test_create_valid_todo(dao, valid_todo):
@@ -83,7 +90,7 @@ def test_create_valid_todo(dao, valid_todo):
     res = sut.create(valid_todo)
     assert res["description"] == valid_todo["description"]
 
-# Test case 4
+# Test case 4 (part 1-2)
 @pytest.mark.parametrize(
     "invalid_todo",
     [
@@ -95,16 +102,15 @@ def test_create_invalid_todos(dao, invalid_todo):
     """ Should raise WriteError """
     sut = dao(collection_name="todo")
     with pytest.raises(WriteError):
-        sut.create(invalid_todo)
+        sut.create(invalid_todo)    # missing required field or wrong bson type
 
-# Test case 4
-@pytest.mark.skip
+# Test case 4 (part 3)
 def test_create_invalid_todo_not_unique(dao, valid_todo):
     """ Should raise DuplicateKeyError """
     sut = dao(collection_name="todo")
     sut.create(valid_todo)  # add a valid todo
     with pytest.raises(DuplicateKeyError):
-        sut.create(valid_todo)  # add a second todo, with same description
+        sut.create(valid_todo)  # add a second todo, with same description (not unique)
 
 # Test case 9
 def test_init_dao_invalid_collection_name(dao):
