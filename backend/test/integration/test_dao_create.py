@@ -3,8 +3,6 @@ from pymongo import MongoClient
 from pymongo.errors import WriteError, DuplicateKeyError, ServerSelectionTimeoutError
 from unittest.mock import MagicMock
 from src.util.dao import DAO
-from bson import ObjectId
-from datetime import datetime
 
 pytestmark = pytest.mark.integration
 
@@ -42,8 +40,6 @@ def valid_task():
     return {
         "title": "A valid task",
         "description": "A task description",
-        "startdate": datetime.utcnow(),
-        "duedate": datetime.utcnow(),
         "categories": ["cat1", "cat2"]
     }
 
@@ -107,7 +103,7 @@ def test_create_valid_todo(dao, valid_todo):
     sut = dao(collection_name="todo")
     res = sut.create(valid_todo)
     del res["_id"]
-    assert res == valid_task
+    assert res == valid_todo
 
 # Test case 4 (part 1-2)
 @pytest.mark.parametrize(
