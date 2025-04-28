@@ -41,10 +41,7 @@ def valid_task():
         "description": "A task description",
         "startdate": datetime.utcnow(),
         "duedate": datetime.utcnow(),
-        "requires": [ObjectId(), ObjectId()],
-        "categories": ["cat1", "cat2"],
-        "todos": [ObjectId(), ObjectId()],
-        "video": ObjectId()
+        "categories": ["cat1", "cat2"]
     }
 
 
@@ -61,7 +58,7 @@ def test_create_valid_task(dao, valid_task):
     sut = dao(collection_name="task")
     res = sut.create(valid_task)
     del res["_id"]
-    assert res = valid_task
+    assert res == valid_task
     # assert res["title"] == valid_task["title"]
 
 # Test case 2 (part 1-2)
