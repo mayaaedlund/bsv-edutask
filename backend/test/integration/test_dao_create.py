@@ -128,11 +128,8 @@ def test_create_valid_user(dao, valid_user):
     sut = dao(collection_name="user")
     res = sut.create(valid_user)
     
-    assert res["firstName"] == valid_user["firstName"]
-    assert res["lastName"] == valid_user["lastName"]
-    assert res["email"] == valid_user["email"]
-    assert res["tasks"] == valid_user["tasks"]
-    assert "_id" in res
+    del res["_id"]
+    assert res == valid_user
 
 # Testcase 6
 @pytest.mark.parametrize(
