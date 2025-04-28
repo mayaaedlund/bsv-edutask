@@ -59,7 +59,6 @@ def test_create_valid_task(dao, valid_task):
     res = sut.create(valid_task)
     del res["_id"]
     assert res == valid_task
-    # assert res["title"] == valid_task["title"]
 
 # Test case 2 (part 1-2)
 @pytest.mark.parametrize(
@@ -88,7 +87,8 @@ def test_create_valid_todo(dao, valid_todo):
     """ Should create and return a valid todo """
     sut = dao(collection_name="todo")
     res = sut.create(valid_todo)
-    assert res["description"] == valid_todo["description"]
+    del res["_id"]
+    assert res == valid_task
 
 # Test case 4 (part 1-2)
 @pytest.mark.parametrize(
