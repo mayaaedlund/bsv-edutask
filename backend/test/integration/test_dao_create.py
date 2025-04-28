@@ -8,6 +8,7 @@ from datetime import datetime
 
 pytestmark = pytest.mark.integration
 
+# DB Fixtures
 @pytest.fixture(scope="module")
 def mongo_test_url():
     return "mongodb://test:test@mongodb_test:27017"
@@ -34,6 +35,8 @@ def dao(set_MONGO_URL, clean_up_database):
         return dao
     return _dao
 
+
+# Pytest fixtures 
 @pytest.fixture
 def valid_task():
     return {
@@ -50,6 +53,22 @@ def valid_todo():
     return {
         "description": "A todo description of a valid todo",
         "done": False
+    }
+
+@pytest.fixture
+def valid_video():
+    """Fixture for a valid video object"""
+    return {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+
+@pytest.fixture
+def valid_user():
+    return {
+        "firstName": "FirstName",
+        "lastName": "LastName",
+        "email": "test@test.com",
+        "tasks": []
     }
 
 # Test case 1
@@ -114,15 +133,6 @@ def test_create_invalid_todo_not_unique(dao, valid_todo):
 
 
 # Testcase 5
-@pytest.fixture
-def valid_user():
-    return {
-        "firstName": "FirstName",
-        "lastName": "LastName",
-        "email": "test@test.com",
-        "tasks": []
-    }
-
 def test_create_valid_user(dao, valid_user):
     """Should create and return a valid user"""
     sut = dao(collection_name="user")
@@ -150,7 +160,6 @@ def test_create_valid_user(dao, valid_user):
 )
 
 # WriteError
-
 def test_create_invalid_user(dao, invalid_user):
     """Should raise WriteError when user is invalid (missing fields or wrong type)"""
     sut = dao(collection_name="user")
@@ -164,25 +173,10 @@ def test_create_user_duplicate_email(dao, valid_user):
     sut = dao(collection_name="user")
     sut.create(valid_user)  # Insert first user
 
-    duplicate_user = {
-        "firstName": "Duplicate",
-        "lastName": "User",
-        "email": valid_user["email"],  # Same email
-        "tasks": []
-    }
-
     with pytest.raises(DuplicateKeyError):
-            sut.create(duplicate_user)
+            sut.create(valid_user)
 
 #Testcase 7
-
-@pytest.fixture
-def valid_video():
-    """Fixture for a valid video object"""
-    return {
-        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    }
-
 def test_create_valid_video(dao, valid_video):
     """Should create and return a valid video"""
     sut = dao(collection_name="video")
@@ -193,7 +187,6 @@ def test_create_valid_video(dao, valid_video):
 
 
 # Testcase 8
-
 @pytest.mark.parametrize(
     "invalid_video",
     [
@@ -201,6 +194,7 @@ def test_create_valid_video(dao, valid_video):
         {"url": 12345}  # Wrong type
     ]
 )
+
 def test_create_invalid_video(dao, invalid_video):
     """Should raise WriteError when trying to create an invalid video"""
     sut = dao(collection_name="video")
@@ -219,12 +213,11 @@ def test_init_dao_invalid_collection_name(dao):
 
 
 # Testcase 10
-
 def test_create_valid_task_with_unreachable_db(monkeypatch, valid_task):
     """Should raise ServerSelectionTimeoutError when DB is unreachable"""
 
     # Set invalid MONGO_URL
-    monkeypatch.setenv("MONGO_URL", "mongodb://invalid_host:27017")
+    monkeypatch.setenv("MONGO_URL", "mongodb://invalid:host@test:27017")
 
     with pytest.raises(ServerSelectionTimeoutError):
         sut = DAO(collection_name="task")
