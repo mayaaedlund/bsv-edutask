@@ -1,6 +1,6 @@
 describe("Test CRUD of todo item", () => {
-    let uid
-    let tid
+    let userObj
+    let taskObj
 
     before(function () {
         // Add user
@@ -11,51 +11,56 @@ describe("Test CRUD of todo item", () => {
                 form: true,
                 body: user
             }).then((response) => {
-                uid = response.body._id.$oid
+                userObj = {...user, id: response.body._id.$oid}
             })
         })
     })
 
     beforeEach(function () {
         // Delete task if created
-        if (tid) {
+        if (taskObj) {
             cy.request({
                 method: "DELETE",
-                url: `http://localhost:5000/tasks/byid/${tid}`,
+                url: `http://localhost:5000/tasks/byid/${taskObj.id}`,
             })
         }
 
-        // Add a fresh task for user (in same manner as in TaskCreator.js)
+        // Add task and assign to user
         cy.fixture("task.json").then((task) => {
-            task.userid = uid
+            taskObj = {...task, userid: userObj.id}
 
             cy.request({
                 method: "POST",
                 url: "http://localhost:5000/tasks/create",
                 form: true,
-                body: task
-            }).then((res) => {
-                const inserted_task = res.body.find(t => t.title === task.title)
-                tid = inserted_task._id.$oid
+                body: taskObj
+            }).then((response) => {
+                // Find the recently added task by title, and get the id
+                taskObj.id = response.body.find(t => t.title === taskObj.title)._id.$oid
+
+                // Navigate to detail view of task
+                cy.visit("/")                               // home page
+                cy.get("form").within(() => {
+                    cy.get("#email").type(userObj.email)    // enter email
+                    cy.contains("Login").click()            // login
+                })
+                cy.get("a").contains(taskObj.title).click() // open detail view
             })
         })
     })
 
-    it("Test nothing yet", () => {
-        expect(true).to.equal(true)
-    })
-
-    it("Test nothing yet2", () => {
-        expect(true).to.equal(true)
+    it("TC 2.1 - Toggle done", () => {
+        cy.contains(taskObj.todos).as("todoDescription")
+        cy.get("@todoDescription").prev().as("toggleIcon")
+        // cy.get("@todoDescription").text().should("not.be.")
+        // cy.get("@toggleIcon").should()
     })
 
     after(function () {
-        // Delete user, and its task
+        // Delete user and assigned task
         cy.request({
             method: "DELETE",
-            url: `http://localhost:5000/users/${uid}`
-        }).then((response) => {
-            cy.log(response.body)
+            url: `http://localhost:5000/users/${userObj.id}`
         })
     })
 })
