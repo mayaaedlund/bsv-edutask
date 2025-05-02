@@ -1,5 +1,6 @@
 describe("Test CRUD of todo item", () => {
     let uid
+    let tid
 
     before(function () {
         // Add user
@@ -11,23 +12,40 @@ describe("Test CRUD of todo item", () => {
                 body: user
             }).then((response) => {
                 uid = response.body._id.$oid
+            })
+        })
+    })
 
-                // Add task for user
-                // This currently fails with status 500 Internal Server Error
-                cy.fixture("task.json").then((task) => {
-                    task.userid = uid
-                    cy.request({
-                        method: "POST",
-                        url: "http://localhost:5000/tasks/create",
-                        form: true,
-                        body: task
-                    })
-                })
+    beforeEach(function () {
+        // Delete task if created
+        if (tid) {
+            cy.request({
+                method: "DELETE",
+                url: `http://localhost:5000/tasks/byid/${tid}`,
+            })
+        }
+
+        // Add a fresh task for user (in same manner as in TaskCreator.js)
+        cy.fixture("task.json").then((task) => {
+            task.userid = uid
+
+            cy.request({
+                method: "POST",
+                url: "http://localhost:5000/tasks/create",
+                form: true,
+                body: task
+            }).then((res) => {
+                const inserted_task = res.body.find(t => t.title === task.title)
+                tid = inserted_task._id.$oid
             })
         })
     })
 
     it("Test nothing yet", () => {
+        expect(true).to.equal(true)
+    })
+
+    it("Test nothing yet2", () => {
         expect(true).to.equal(true)
     })
 

@@ -1,5 +1,6 @@
 {
     "title": "A test task",
     "description": "This task is quite simple",
-    "url": "Mus_vwhTCq0"
+    "url": "Mus_vwhTCq0",
+    "todos": "A custom todo"
 }
