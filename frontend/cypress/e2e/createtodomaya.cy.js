@@ -5,6 +5,7 @@ describe('Tasks', () => {
   let lastname // last name of user
   let email // email of the user
 
+  //before
   before(function () {
     // create a fabricated user from a fixture
     cy.fixture('user.json')
