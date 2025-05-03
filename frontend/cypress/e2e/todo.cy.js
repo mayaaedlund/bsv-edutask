@@ -49,11 +49,28 @@ describe("Test CRUD of todo item", () => {
         })
     })
 
-    it("TC 2.1 - Toggle done", () => {
-        cy.contains(taskObj.todos).as("todoDescription")
-        cy.get("@todoDescription").prev().as("toggleIcon")
-        // cy.get("@todoDescription").text().should("not.be.")
-        // cy.get("@toggleIcon").should()
+    it("TC 2.1 - Toggle to 'done'", () => {
+        cy.contains(taskObj.todos).as("todoDescription").prev().as("toggleIcon")
+        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
+        cy.get("@toggleIcon").click()
+        cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
+    })
+
+    it("TC 2.2 - Toggle to 'active'", () => {
+        cy.contains(taskObj.todos).as("todoDescription").prev().as("toggleIcon")
+        cy.get("@toggleIcon").click()
+        cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
+        cy.get("@toggleIcon").click()
+        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
+    })
+
+    it("TC 2.1 & 2.2 - Toggle 'done' and 'active'", () => {
+        cy.contains(taskObj.todos).as("todoDescription").prev().as("toggleIcon")
+        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
+        cy.get("@toggleIcon").click()
+        cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
+        cy.get("@toggleIcon").click()
+        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
     })
 
     after(function () {
