@@ -44,7 +44,7 @@ describe("Test CRUD of todo item", () => {
                     cy.get("#email").type(userObj.email)    // enter email
                     cy.contains("Login").click()            // login
                 })
-                cy.get("a").contains(taskObj.title).click() // open detail view
+                cy.contains(taskObj.title).click()          // open detail view
             })
         })
     })
@@ -71,6 +71,15 @@ describe("Test CRUD of todo item", () => {
         cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
         cy.get("@toggleIcon").click()
         cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
+    })
+
+    // This fails, but i dont know why
+    it("TC 3.1 - Delete todo item", () => {
+        cy.contains(taskObj.todos).as("todoDescription").next().as("deleteBtn")
+        cy.intercept("DELETE", "/todos/byid/*").as("deleteTodo")
+        cy.get("@deleteBtn").click()
+        cy.wait("@deleteTodo")
+        cy.get("@todoDescription").should("not.exist")
     })
 
     after(function () {
