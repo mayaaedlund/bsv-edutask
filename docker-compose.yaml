@@ -12,16 +12,16 @@ services:
       - "27017:27017"
     command: mongod --bind_ip_all
 
-  mongodb_test:                           # FOR TESTING
-    image: mongo
-    container_name: edutask-mongodb-test
-    environment:
-      - MONGO_INITDB_DATABASE=testDb
-      - MONGO_INITDB_ROOT_USERNAME=test
-      - MONGO_INITDB_ROOT_PASSWORD=test
-    ports:
-      - "27018:27017"
-    command: mongod --bind_ip_all
+  # mongodb_test:                           # FOR PYTEST
+  #   image: mongo
+  #   container_name: edutask-mongodb-test
+  #   environment:
+  #     - MONGO_INITDB_DATABASE=testDb
+  #     - MONGO_INITDB_ROOT_USERNAME=test
+  #     - MONGO_INITDB_ROOT_PASSWORD=test
+  #   ports:
+  #     - "27018:27017"
+  #   command: mongod --bind_ip_all
 
   backend:
     build: ./backend
@@ -35,9 +35,9 @@ services:
       - PORT=${PORT_BACKEND}
     ports:
       - "${PORT_BACKEND}:${PORT_BACKEND}"
-    volumes:                                    # FOR TESTING
-      - ./backend/test:/app/test                # FOR TESTING
-      - ./backend/pytest.ini:/app/pytest.ini    # FOR TESTING
+    # volumes:                                    # FOR PYTEST
+    #   - ./backend/test:/app/test                # FOR PYTEST
+    #   - ./backend/pytest.ini:/app/pytest.ini    # FOR PYTEST
 
   frontend:
     build: ./frontend
