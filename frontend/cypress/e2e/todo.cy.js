@@ -4,48 +4,21 @@ describe("Test CRUD of todo item", () => {
 
     before(function () {
         // Add user
-        cy.fixture("user.json").then((user) => {
-            cy.request({
-                method: "POST",
-                url: "http://localhost:5000/users/create",
-                form: true,
-                body: user
-            }).then((response) => {
-                userObj = {...user, id: response.body._id.$oid}
-            })
-        })
+        cy.createUser().then(user => userObj = user)
     })
 
     beforeEach(function () {
-        // Delete task if created
+        // Delete task if previously created
         if (taskObj) {
-            cy.request({
-                method: "DELETE",
-                url: `http://localhost:5000/tasks/byid/${taskObj.id}`,
-            })
+            cy.deleteTask(taskObj.id)
         }
 
         // Add task and assign to user
-        cy.fixture("task.json").then((task) => {
-            taskObj = {...task, userid: userObj.id}
+        cy.createTask(userObj.id).then((task) => {
+            taskObj = task
 
-            cy.request({
-                method: "POST",
-                url: "http://localhost:5000/tasks/create",
-                form: true,
-                body: taskObj
-            }).then((response) => {
-                // Find the recently added task by title, and get the id
-                taskObj.id = response.body.find(t => t.title === taskObj.title)._id.$oid
-
-                // Navigate to detail view of task
-                cy.visit("/")                               // home page
-                cy.get("form").within(() => {
-                    cy.get("#email").type(userObj.email)    // enter email
-                    cy.contains("Login").click()            // login
-                })
-                cy.contains(taskObj.title).click()          // open detail view
-            })
+            // Login user, and navigate to detail view of task
+            cy.navigateToDetailView(userObj, taskObj)
         })
     })
 
@@ -57,36 +30,31 @@ describe("Test CRUD of todo item", () => {
     })
 
     it("TC 2.2 - Toggle to 'active'", () => {
+        // Set todo to 'done' through backend
+        cy.setTodoDone(taskObj, true)
+
+        // Refresh by navigating to detail view again
+        cy.navigateToDetailView(userObj, taskObj)
+
         cy.contains(taskObj.todos).as("todoDescription").prev().as("toggleIcon")
-        cy.get("@toggleIcon").click()
         cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
         cy.get("@toggleIcon").click()
         cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
     })
 
-    it("TC 2.1 & 2.2 - Toggle 'done' and 'active'", () => {
-        cy.contains(taskObj.todos).as("todoDescription").prev().as("toggleIcon")
-        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
-        cy.get("@toggleIcon").click()
-        cy.get("@todoDescription").should("have.css", "text-decoration-line", "line-through")
-        cy.get("@toggleIcon").click()
-        cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
-    })
-
-    // This fails, but i dont know why
+    // Fails because TaskDetail does not wait for todo to update done status, but it works when trying manually in browser
     it("TC 3.1 - Delete todo item", () => {
         cy.contains(taskObj.todos).as("todoDescription").next().as("deleteBtn")
-        cy.intercept("DELETE", "/todos/byid/*").as("deleteTodo")
         cy.get("@deleteBtn").click()
-        cy.wait("@deleteTodo")
-        cy.get("@todoDescription").should("not.exist")
+        cy.get("@todoDescription").should("not.exist")   // fails, the todo is still there
+
+        // This works though. cy.wait() does not solve it
+        // cy.navigateToDetailView(userObj, taskObj)
+        // cy.contains(taskObj.todos).should("not.exist")
     })
 
     after(function () {
-        // Delete user and assigned task
-        cy.request({
-            method: "DELETE",
-            url: `http://localhost:5000/users/${userObj.id}`
-        })
+        // Delete user and related tasks etc
+        cy.deleteUser(userObj)
     })
 })
