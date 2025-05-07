@@ -40,6 +40,8 @@ describe("Test CRUD of todo item", () => {
     
             cy.get("input[placeholder='Add a new todo item']").clear({ force: true });
             cy.get("form.inline-form input[type='submit']").click({ force: true });
+
+            cy.wait(500);
     
             cy.get(".todo-list .todo-item").should("have.length.at.most", initialCount);
         });
