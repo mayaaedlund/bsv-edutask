@@ -4,62 +4,35 @@ describe("Test CRUD of todo item", () => {
 
     before(function () {
         // Add user
-        cy.fixture("user.json").then((user) => {
-            cy.request({
-                method: "POST",
-                url: "http://localhost:5000/users/create",
-                form: true,
-                body: user
-            }).then((response) => {
-                userObj = {...user, id: response.body._id.$oid}
-            })
-        })
+        cy.createUser().then(user => userObj = user)
     })
 
     beforeEach(function () {
-        // Delete task if created
+        // Delete task if previously created
         if (taskObj) {
-            cy.request({
-                method: "DELETE",
-                url: `http://localhost:5000/tasks/byid/${taskObj.id}`,
-            })
+            cy.deleteTask(taskObj.id)
         }
 
         // Add task and assign to user
-        cy.fixture("task.json").then((task) => {
-            taskObj = {...task, userid: userObj.id}
+        cy.createTask(userObj.id).then((task) => {
+            taskObj = task
 
-            cy.request({
-                method: "POST",
-                url: "http://localhost:5000/tasks/create",
-                form: true,
-                body: taskObj
-            }).then((response) => {
-                // Find the recently added task by title, and get the id
-                taskObj.id = response.body.find(t => t.title === taskObj.title)._id.$oid
-
-                // Navigate to detail view of task
-                cy.visit("/")                               // home page
-                cy.get("form").within(() => {
-                    cy.get("#email").type(userObj.email)    // enter email
-                    cy.contains("Login").click()            // login
-                })
-                cy.get("a").contains(taskObj.title).click() // open detail view
-            })
+            // Login user, and navigate to detail view of task
+            cy.navigateToDetailView(userObj, taskObj)
         })
-    })
-
-    it("TC 2.1 - Toggle done", () => {
-        cy.contains(taskObj.todos).as("todoDescription")
-        cy.get("@todoDescription").prev().as("toggleIcon")
-        // cy.get("@todoDescription").text().should("not.be.")
-        // cy.get("@toggleIcon").should()
     })
 
     it("TC 1.1.1 - 'Add' button is disabled when input is empty", () => {
         cy.get("input[placeholder='Add a new todo item']").clear()
         cy.get("form.inline-form input[type='submit']").should("be.disabled")
     })
+
+    it("TC 1.1.2 - 'Add' button is enabled when input is not empty", () => {
+        const todoText = "Test todo item"
+        cy.get("input[placeholder='Add a new todo item']").clear().type(todoText)
+        cy.get("form.inline-form input[type='submit']").should("not.be.disabled")
+    })
+    
 
     it("TC 1.2.1 - System does not add todo when input is empty", () => {
         cy.get(".todo-list .todo-item").then(($itemsBefore) => {
@@ -72,18 +45,17 @@ describe("Test CRUD of todo item", () => {
         });
     });
 
-    it("TC 1.1.2 & 1.2.2 - System adds todo when input is not empty", () => {
+    it("TC 1.2.2 - System adds todo when input is not empty", () => {
         const todoText = "Test todo item"
+
         cy.get("input[placeholder='Add a new todo item']").clear({ force: true }).type(todoText, { force: true })
-        cy.get("form.inline-form input[type='submit']").click({ force: true })
+        cy.get("form.inline-form input[type='submit']").click({ force: true });
         cy.get(".todo-list .todo-item").last().should("contain.text", todoText)
     })
+    
 
     after(function () {
-        // Delete user and assigned task
-        cy.request({
-            method: "DELETE",
-            url: `http://localhost:5000/users/${userObj.id}`
-        })
+        // Delete user and related tasks etc
+        cy.deleteUser(userObj)
     })
 })
