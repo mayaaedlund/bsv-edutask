@@ -75,15 +75,12 @@ describe("Test CRUD of todo item", () => {
         cy.get("@todoDescription").should("not.have.css", "text-decoration-line", "line-through")
     })
 
-    // Fails because TaskDetail does not wait for todo to update done status, but it works when trying manually in browser
+
     it("TC 3.1 - Delete todo item", () => {
         cy.contains(taskObj.todos).as("todoDescription").next().as("deleteBtn")
         cy.get("@deleteBtn").click()
-        cy.get("@todoDescription").should("not.exist")   // fails, the todo is still there
 
-        // This works though. cy.wait() does not solve it
-        // cy.navigateToDetailView(userObj, taskObj)
-        // cy.contains(taskObj.todos).should("not.exist")
+        cy.get("@todoDescription").should("not.exist")
     })
     
 
