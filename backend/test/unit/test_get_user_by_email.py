@@ -62,21 +62,22 @@ def test_valid_email_one_user(controller, userOne, valid_email):
     result = user_controller.get_user_by_email(valid_email)
     assert result == userOne
 
-# Testcase 3: Two user with same email found
-def test_valid_email_multiple_users(controller, userOne, userTwo, valid_email, capsys):
-    """ 
-    Should return the first user
-    Print a warning message 
-    """
-    user_controller = controller([userOne, userTwo]) # Database with two users
+# Testcase 3a: Two user with same email found - should return user
+def test_valid_email_multiple_users_returns_first(controller, userOne, userTwo, valid_email):
+    """Should return the first user if multiple users have the same email"""
+    user_controller = controller([userOne, userTwo])
     result = user_controller.get_user_by_email(valid_email)
-    
-    # Check if first user is returned
     assert result == userOne
 
-    # Check if warning message is printed. 
+
+# Testcase 3b: Two users with same email - Should print a warning
+def test_valid_email_multiple_users_prints_warning(controller, userOne, userTwo, valid_email, capsys):
+    """Should print a warning if multiple users are found with the same email"""
+    user_controller = controller([userOne, userTwo])
+    user_controller.get_user_by_email(valid_email)
     captured = capsys.readouterr()
     assert f"more than one user found with mail {valid_email}" in captured.out
+
 
 # Testcase 4: Database fails (raises DatabaseException)
 def test_valid_email_db_error(valid_email):
