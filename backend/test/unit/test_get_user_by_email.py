@@ -62,7 +62,7 @@ def test_valid_email_one_user(controller, userOne, valid_email):
     result = user_controller.get_user_by_email(valid_email)
     assert result == userOne
 
-# Testcase 3a: Two user with same email found - should return user
+# Testcase 3a: Two user with same email found - should return user-
 def test_valid_email_multiple_users_returns_first(controller, userOne, userTwo, valid_email):
     """Should return the first user if multiple users have the same email"""
     user_controller = controller([userOne, userTwo])
@@ -70,7 +70,7 @@ def test_valid_email_multiple_users_returns_first(controller, userOne, userTwo, 
     assert result == userOne
 
 
-# Testcase 3b: Two users with same email - Should print a warning
+# Testcase 3b: Two users with same email - Should print a warning.
 def test_valid_email_multiple_users_prints_warning(controller, userOne, userTwo, valid_email, capsys):
     """Should print a warning if multiple users are found with the same email"""
     user_controller = controller([userOne, userTwo])
