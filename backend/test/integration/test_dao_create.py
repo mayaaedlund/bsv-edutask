@@ -172,13 +172,20 @@ def test_create_user_duplicate_email(dao, valid_user):
     with pytest.raises(DuplicateKeyError):
             sut.create(valid_user)
 
-#Testcase 7
-def test_create_valid_video(dao, valid_video):
-    """Should create and return a valid video"""
+#Testcase 7a
+def test_create_valid_video_url(dao, valid_video):
+    """Should create and return a valid video url"""
     sut = dao(collection_name="video")
     res = sut.create(valid_video)
 
     assert res["url"] == valid_video["url"]
+
+#Testcase 7b
+def test_create_valid_video_id(dao, valid_video):
+    """Should create and return a valid video id"""
+    sut = dao(collection_name="video")
+    res = sut.create(valid_video)
+
     assert "_id" in res
 
 
